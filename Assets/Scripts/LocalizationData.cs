@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class LocalizationData
 {
-    public List<LocalalizationItems> items;
+    public List<LocalizationItems> items;
 }
 
 [System.Serializable]
-public class LocalalizationItems
+public class LocalizationItems
 {
     public string key;
     public string value;

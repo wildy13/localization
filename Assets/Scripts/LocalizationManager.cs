@@ -4,28 +4,21 @@ using System.IO;
 using UnityEngine;
 using System;
 using UnityEngine.Networking;
-using System.Numerics;
+using System.Text;
 
 public class LocalizationManager : MonoBehaviour
 {
     [Header("Important String")]
-    private const string FILENAME_PREFIX = "text_";
-    private const string FILE_EXTENSION = ".json";
-    private string FULL_NAME_TEXT_FILE;
-    private string path = "https://raw.githubusercontent.com/wildy13/LanguageJson/main/";
-    private string FULL_PATH_TEXT_FILE;
-    private string LANGUAGE_CHOOSE = "EN";
-    private string LOADED_JSON_TEXT = "";
+    private int defaultLangId = 0;
 
     [Header("Important Bool")]
     [HideInInspector]
     public bool _isReady = false;
-    private bool _isFileFound = false;
     private bool _isTryChangeLangRunTime = false;
 
     [Header("Json Variable")]
     public Dictionary<string, string> _LocalizedDictionary;
-    public LocalizationData _loadedData, _loadedLang;
+    public LocalizationData _loadedData;
 
 
     #region Instance Function
@@ -54,56 +47,33 @@ public class LocalizationManager : MonoBehaviour
 
     private void LoadSelectedLanguage()
     {
-        int lang = 0;
-        string selectedLanguage = PlayerPrefs.GetString(LANGUAGE_PLAYER_PREFS_KEY, LocaleHelper.GetSupportLanguageCode());
-        if (selectedLanguage == "EN")
-        {
-            lang = 0;
-        }
-        else if (selectedLanguage == "ID")
-        {
-            lang = 1 ;
-        }
-        else if (selectedLanguage == "ES")
-        {
-            lang = 2;
-        }
-
-        
-        ChangeLanguage(lang);
-    }
-
-    private void SaveSelectedLanguage(string languageCode)
-    {
-        PlayerPrefs.SetString(LANGUAGE_PLAYER_PREFS_KEY, languageCode);
+        int selectedLanguage = PlayerPrefs.GetInt("langId");
+        ChangeLanguage(selectedLanguage);
     }
 
     IEnumerator Start()
     {
-        LANGUAGE_CHOOSE = LocaleHelper.GetSupportLanguageCode();
-        FULL_NAME_TEXT_FILE = FILENAME_PREFIX + LANGUAGE_CHOOSE.ToLower() + FILE_EXTENSION;
-
-#if UNITY_IOS || UNITY_ANDROID
-            FULL_PATH_TEXT_FILE = Path.Combine(path, FULL_NAME_TEXT_FILE);
-#else
-        FULL_PATH_TEXT_FILE = Path.Combine(path, FULL_NAME_TEXT_FILE);
-        
-#endif
-        yield return StartCoroutine(LoadJsonLanguageData(FULL_PATH_TEXT_FILE));
+        yield return StartCoroutine(LoadJsonLanguageData(defaultLangId));
 
         _isReady = true;
     }
 
-
-    IEnumerator LoadJsonLanguageData(string path)
+    IEnumerator LoadJsonLanguageData(int langId)
     {
-        CheckFileExist();
+        string url = "http://190.1.7.100:4005/api/lang/" + langId;
 
-        yield return new WaitUntil(() => _isFileFound);
-        _loadedData = JsonUtility.FromJson<LocalizationData>(LOADED_JSON_TEXT);
+        UnityWebRequest request = new UnityWebRequest(url, "GET");
+
+        request.downloadHandler = (DownloadHandler) new DownloadHandlerBuffer();
+
+        request.SetRequestHeader("Content-Type", "application/json");
+        yield return request.SendWebRequest();
+
+        string res = request.downloadHandler.text;
+        _loadedData = JsonUtility.FromJson<LocalizationData>(res);
         _LocalizedDictionary = new Dictionary<string, string>();
 
-        foreach (LocalalizationItems item in _loadedData.items)
+        foreach (LocalizationItems item in _loadedData.items)
         {
             try
             {
@@ -114,70 +84,6 @@ public class LocalizationManager : MonoBehaviour
                 Debug.LogError(e);
             }
         }
-    }
-
-
-    private void CheckFileExist()
-    {
-            StartCoroutine(LoadFileContent());
-    }
-
-
-   IEnumerator LoadFileContent()
-    {
-        if (FULL_PATH_TEXT_FILE.Contains("://"))
-        {
-            UnityWebRequest www = UnityWebRequest.Get(FULL_PATH_TEXT_FILE);
-            yield return www.SendWebRequest();
-
-            if (www.result == UnityWebRequest.Result.Success)
-            {
-                LOADED_JSON_TEXT = www.downloadHandler.text;
-            }
-            else
-            {
-                Debug.LogError("Error loading JSON: " + www.error);
-            }
-        }
-        else
-        {
-            if (File.Exists(FULL_PATH_TEXT_FILE))
-            {
-                LOADED_JSON_TEXT = File.ReadAllText(FULL_PATH_TEXT_FILE);
-            }
-            else
-            {
-                Debug.LogError("File not found: " + FULL_PATH_TEXT_FILE);
-            }
-        }
-        _isFileFound = true;
-    }
-
-
-    private bool IsFileFinishCreate(FileInfo file)
-    {
-        FileStream stream = null;
-        try
-        {
-            stream = file.Open(FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-        }
-        catch (IOException)
-        {
-            _isFileFound = true;
-            Debug.Log("we succed to find  file");
-            return true;
-        }
-
-        finally
-        {
-            if (stream != null)
-            {
-                stream.Close();
-            }
-        }
-        _isFileFound = false;
-
-            return false;
     }
 
     public string GetTextForKey(string localizationKey)
@@ -193,33 +99,14 @@ public class LocalizationManager : MonoBehaviour
         }
     }
 
-    IEnumerator SwitchLanguageRunTime(int langChoose)
+    IEnumerator SwitchLanguageRunTime(int langId)
     {
         if (!_isTryChangeLangRunTime)
         {
             _isTryChangeLangRunTime = true;
-            _isFileFound = false;
             _isReady = false;
-            
-            if(langChoose == 0)
-            {
-                LANGUAGE_CHOOSE = "EN";
-            }
-            else if(langChoose == 1)
-            {
-                LANGUAGE_CHOOSE = "ID";
-            }else if(langChoose == 2)
-            {
-                LANGUAGE_CHOOSE = "ES";
-            }
 
-            FULL_NAME_TEXT_FILE = FILENAME_PREFIX + LANGUAGE_CHOOSE.ToLower() + FILE_EXTENSION;
-#if UNITY_IOS || UNITY_ANDROID
-            FULL_PATH_TEXT_FILE = Path.Combine(path, FULL_NAME_TEXT_FILE);
-#else
-            FULL_PATH_TEXT_FILE = Path.Combine(path, FULL_NAME_TEXT_FILE);
-#endif
-            yield return StartCoroutine(LoadJsonLanguageData(FULL_PATH_TEXT_FILE));
+            yield return StartCoroutine(LoadJsonLanguageData(langId));
             _isReady = true;
 
             LocalizationText[] arrayText = FindObjectsOfType<LocalizationText>(); 
@@ -227,14 +114,14 @@ public class LocalizationManager : MonoBehaviour
             {
                 arrayText[i].AttributionText();
             }
-            SaveSelectedLanguage(LANGUAGE_CHOOSE);
+            
             _isTryChangeLangRunTime = false;
         }
 
     }
-    public void ChangeLanguage(int language)
+    public void ChangeLanguage(int langId)
     {
-        StartCoroutine(SwitchLanguageRunTime(language));
+        StartCoroutine(SwitchLanguageRunTime(langId));
     }
 
 }
