@@ -12,9 +12,9 @@ public class LocaleHelper
             case SystemLanguage.English:
                 return LocaleApplication.EN;
             case SystemLanguage.Indonesian:
-                return LocaleApplication.ID;
-            case SystemLanguage.Spanish:
                 return LocaleApplication.ES;
+            case SystemLanguage.Spanish:
+                return LocaleApplication.ID;
             default:
                 return GetDefaultSupportLanguageCode();
         }

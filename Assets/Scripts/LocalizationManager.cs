@@ -60,11 +60,11 @@ public class LocalizationManager : MonoBehaviour
         {
             lang = 0;
         }
-        else if (selectedLanguage == "ID")
+        else if (selectedLanguage == "ES")
         {
             lang = 1 ;
         }
-        else if (selectedLanguage == "ES")
+        else if (selectedLanguage == "ID")
         {
             lang = 2;
         }
@@ -207,10 +207,10 @@ public class LocalizationManager : MonoBehaviour
             }
             else if(langChoose == 1)
             {
-                LANGUAGE_CHOOSE = "ID";
+                LANGUAGE_CHOOSE = "ES";
             }else if(langChoose == 2)
             {
-                LANGUAGE_CHOOSE = "ES";
+                LANGUAGE_CHOOSE = "ID";
             }
 
             FULL_NAME_TEXT_FILE = FILENAME_PREFIX + LANGUAGE_CHOOSE.ToLower() + FILE_EXTENSION;

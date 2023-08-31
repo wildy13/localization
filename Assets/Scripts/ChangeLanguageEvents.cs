@@ -8,7 +8,7 @@ public class ChangeLanguageEvents : MonoBehaviour
 {
     public LocalizationManager localizationManager;
     TMP_Dropdown dropdown;
-    int id_language_Choose;
+    int langId;
 
     private void Awake()
     {
@@ -43,13 +43,13 @@ public class ChangeLanguageEvents : MonoBehaviour
             dropdown.AddOptions(options);
 
             // Set the value of the dropdown based on PlayerPrefs or system language
-            id_language_Choose = PlayerPrefs.GetInt(Application.productName + "id_language_Choose", -1);
-            if (id_language_Choose == -1)
+            langId = PlayerPrefs.GetInt("langId", -1);
+            if (langId == -1)
             {
                 string systemLanguageCode = LocaleHelper.GetSupportLanguageCode();
-                id_language_Choose = GetLanguageIndex(systemLanguageCode);
+                langId = GetLanguageIndex(systemLanguageCode);
             }
-            dropdown.value = id_language_Choose;
+            dropdown.value = langId;
         }
         else
         {
@@ -72,9 +72,8 @@ public class ChangeLanguageEvents : MonoBehaviour
 
     public void DropdownValueChanged()
     {
-        id_language_Choose = dropdown.value;
-        Debug.Log(id_language_Choose);
-        LocalizationManager.Instance.ChangeLanguage(id_language_Choose);
-        PlayerPrefs.SetInt(Application.productName + "id_language_Choose", id_language_Choose);
+        langId = dropdown.value;
+        LocalizationManager.Instance.ChangeLanguage(langId);
+        PlayerPrefs.SetInt("langId", langId);
     }
 }
