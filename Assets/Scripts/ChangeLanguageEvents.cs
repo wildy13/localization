@@ -34,7 +34,7 @@ public class ChangeLanguageEvents : MonoBehaviour
 
             List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
 
-            foreach (LocalalizationItems item in _loadedLang.items)
+            foreach (LocalizationItems item in _loadedLang.items)
             {
                 options.Add(new TMP_Dropdown.OptionData(item.value));
             }
