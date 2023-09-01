@@ -13,46 +13,38 @@ public class ChangeLanguageEvents : MonoBehaviour
     private void Awake()
     {
         dropdown = GetComponent<TMP_Dropdown>();
-        LoadLanguageOptions();
+        StartCoroutine(LoadLanguageOptions());
     }
 
-    private void LoadLanguageOptions()
+    private IEnumerator LoadLanguageOptions()
     {
-        string path = "https://raw.githubusercontent.com/wildy13/LanguageJson/main/language.json";
-        StartCoroutine(LoadLanguageOptionsCoroutine(path));
-    }
+        string url = "http://190.1.7.100:4005/api/lang/";
 
-    private IEnumerator LoadLanguageOptionsCoroutine(string path)
-    {
-        UnityWebRequest www = UnityWebRequest.Get(path);
-        yield return www.SendWebRequest();
+        UnityWebRequest request = new UnityWebRequest(url, "GET");
 
-        if (www.result == UnityWebRequest.Result.Success)
+        request.downloadHandler = (DownloadHandler) new DownloadHandlerBuffer();
+
+        request.SetRequestHeader("Content-Type", "application/json");
+        yield return request.SendWebRequest();
+
+        string res = request.downloadHandler.text;
+        LocalizationData _loadedData = JsonUtility.FromJson<LocalizationData>(res);
+        List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
+
+        foreach (LocalizationItems item in _loadedData.items)
         {
-            string LOADED_JSON_LANG = www.downloadHandler.text;
-            LocalizationData _loadedLang = JsonUtility.FromJson<LocalizationData>(LOADED_JSON_LANG);
-
-            List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
-
-            foreach (LocalizationItems item in _loadedLang.items)
-            {
-                options.Add(new TMP_Dropdown.OptionData(item.value));
-            }
-
-            dropdown.ClearOptions();
-            dropdown.AddOptions(options);
-
-            langId = PlayerPrefs.GetInt("langId");
-            if (langId == -1)
-            {
-                langId = 0;
-            }
-            dropdown.value = langId;
+            options.Add(new TMP_Dropdown.OptionData(item.value));
         }
-        else
+
+        dropdown.ClearOptions();
+        dropdown.AddOptions(options);
+
+        langId = PlayerPrefs.GetInt("langId");
+        if (langId == -1)
         {
-            Debug.LogError("Error loading JSON: " + www.error);
+            langId = 0;
         }
+        dropdown.value = langId;
     }
 
     public void DropdownValueChanged()
