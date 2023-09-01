@@ -9,7 +9,7 @@ using System.Text;
 public class LocalizationManager : MonoBehaviour
 {
     [Header("Important String")]
-    private int defaultLangId = 0;
+    private int langId;
 
     [Header("Important Bool")]
     [HideInInspector]
@@ -37,8 +37,6 @@ public class LocalizationManager : MonoBehaviour
     }
     #endregion Instance Function
 
-    private const string LANGUAGE_PLAYER_PREFS_KEY = "selectedLanguage";
-
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -47,18 +45,17 @@ public class LocalizationManager : MonoBehaviour
 
     private void LoadSelectedLanguage()
     {
-        int selectedLanguage = PlayerPrefs.GetInt("langId");
-        ChangeLanguage(selectedLanguage);
+        ChangeLanguage(langId);
     }
 
     IEnumerator Start()
     {
-        yield return StartCoroutine(LoadJsonLanguageData(defaultLangId));
+        yield return StartCoroutine(LoadJsonLanguageData());
 
         _isReady = true;
     }
 
-    IEnumerator LoadJsonLanguageData(int langId)
+    IEnumerator LoadJsonLanguageData()
     {
         string url = "http://190.1.7.100:4005/api/lang/" + langId;
 
@@ -99,14 +96,14 @@ public class LocalizationManager : MonoBehaviour
         }
     }
 
-    IEnumerator SwitchLanguageRunTime(int langId)
+    IEnumerator SwitchLanguageRunTime()
     {
         if (!_isTryChangeLangRunTime)
         {
             _isTryChangeLangRunTime = true;
             _isReady = false;
 
-            yield return StartCoroutine(LoadJsonLanguageData(langId));
+            yield return StartCoroutine(LoadJsonLanguageData());
             _isReady = true;
 
             LocalizationText[] arrayText = FindObjectsOfType<LocalizationText>(); 
@@ -119,9 +116,10 @@ public class LocalizationManager : MonoBehaviour
         }
 
     }
-    public void ChangeLanguage(int langId)
-    {
-        StartCoroutine(SwitchLanguageRunTime(langId));
-    }
 
+    public void ChangeLanguage(int languageCode)
+    {
+        langId = languageCode;
+        StartCoroutine(SwitchLanguageRunTime());
+    }
 }

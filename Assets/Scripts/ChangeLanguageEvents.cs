@@ -42,12 +42,10 @@ public class ChangeLanguageEvents : MonoBehaviour
             dropdown.ClearOptions();
             dropdown.AddOptions(options);
 
-            // Set the value of the dropdown based on PlayerPrefs or system language
-            langId = PlayerPrefs.GetInt("langId", -1);
+            langId = PlayerPrefs.GetInt("langId");
             if (langId == -1)
             {
-                string systemLanguageCode = LocaleHelper.GetSupportLanguageCode();
-                langId = GetLanguageIndex(systemLanguageCode);
+                langId = 0;
             }
             dropdown.value = langId;
         }
@@ -55,19 +53,6 @@ public class ChangeLanguageEvents : MonoBehaviour
         {
             Debug.LogError("Error loading JSON: " + www.error);
         }
-    }
-
-    private int GetLanguageIndex(string languageCode)
-    {
-        List<TMP_Dropdown.OptionData> options = dropdown.options;
-        for (int i = 0; i < options.Count; i++)
-        {
-            if (options[i].text.Equals(languageCode))
-            {
-                return i;
-            }
-        }
-        return 0; 
     }
 
     public void DropdownValueChanged()
