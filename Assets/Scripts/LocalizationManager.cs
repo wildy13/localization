@@ -72,14 +72,7 @@ public class LocalizationManager : MonoBehaviour
 
         foreach (LocalizationItems item in _loadedData.items)
         {
-            try
-            {
-                _LocalizedDictionary.Add(item.key, item.value);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-            }
+            _LocalizedDictionary.Add(item.key, item.value);
         }
     }
 
